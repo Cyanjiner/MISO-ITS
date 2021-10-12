@@ -1,0 +1,114 @@
+---
+title: "shiny"
+author: "Jiner Zheng"
+date: "7/18/2019"
+output: html_document
+runtime: shiny
+---
+
+```{r echo=FALSE,warning=FALSE,message=FALSE}
+SN <- read.csv("/Volumes/apprenticeship/summer19/jzheng/SN_project/QAC_dataset_v2.csv")
+library(lubridate)
+SN$resolved_time = ymd_hms(SN$resolved_at)
+SN$created_time = ymd_hms(SN$sys_created_on)
+SN$resolution_time = difftime(SN$resolved_time, SN$created_time, units = "days")
+SN$resolution_hour = difftime(SN$resolved_time, SN$created_time, units = "hours")
+SN$year = year(SN$created_time)
+SN$ymd = format(SN$created_time, "%y-%m-%d")
+SN$date=as.Date(SN$created_time)
+SN$resolution_time1 <- as.numeric(SN$resolution_time)
+
+SN$fiscal_year <- ifelse(month(SN$created_time) >= 7, year(SN$created_time)+1, year(SN$created_time))
+SN$fiscal_year[SN$fiscal_year == 2020 ] <- 2019
+SN <- SN[SN$resolution_time <= 180,]
+library(dplyr)
+library(plotly)
+library(shiny)
+```
+
+
+```{r eruptions, echo=FALSE}
+ui <- fluidPage(radioButtons("year", label=h3("Fiscal Years"),
+                             choices=list("FY 2017"=2017, "FY 2018"=2018, "FY 2019"=2019),
+                             selected = 2017),
+                plotlyOutput(outputId = "densityplot"),
+                plotlyOutput(outputId = "timeplot1"),
+                plotlyOutput(outputId = "timeplot2"))
+
+server <- function(input, output) {
+  output$densityplot<-renderPlotly({
+    timesubset = SN[SN$fiscal_year == input$year, ]
+    p <- ggplot(timesubset, aes(x=resolution_hour))+geom_density()+
+      ggtitle(paste("Distribution of resolution time of all incidents in", toString(input$year)))+
+      xlab("resolution time (hours)")
+    ggplotly(p)
+  })
+  output$timeplot1<-renderPlotly({
+    timesubset = SN[SN$fiscal_year == input$year, ] %>%
+      group_by(date) %>%
+      summarize(count=n())
+    time_plot <- plot_ly(timesubset,x=~date)%>%
+      add_lines(y=~count) %>%
+      layout(title=paste("Number of all incidents in",toString(input$year)),
+        xaxis=list(rangeselector=list(
+        buttons=list(
+          list(
+            count=3,
+            label="3 mo",
+            step="month",
+            stepmode="backward"),
+          list(
+            count=6,
+            label="6 mo",
+            step="month",
+            stepmode="backward"),
+          list(
+            count=1,
+            label="YTD",
+            step="year",
+            stepmode="todate"),
+          list(step="all"))),
+        rangeslider = list(type="date")),
+        yaxis=list(title="number of issues")
+      )
+    
+    time_plot
+  })
+  output$timeplot2<-renderPlotly({
+    timesubset2 = SN[SN$fiscal_year == input$year, ] %>%
+      group_by(date) %>%
+      summarise(avg_time=mean(resolution_time1))
+    time_plot2 <- plot_ly(timesubset2,x=~date)%>%
+      add_lines(y=~avg_time) %>%
+      layout(title=paste("Average Resolution Time of all incidents in", toString(input$year)),
+        xaxis=list(rangeselector=list(
+        buttons=list(
+          list(
+            count=3,
+            label="3 mo",
+            step="month",
+            stepmode="backward"),
+          list(
+            count=6,
+            label="6 mo",
+            step="month",
+            stepmode="backward"),
+          list(
+            count=1,
+            label="YTD",
+            step="year",
+            stepmode="todate"),
+          list(step="all"))),
+        rangeslider = list(type="date")),
+        yaxis=list(title="Average resolution time (days)")
+      )
+    
+    time_plot2
+    
+  })
+}
+
+shinyApp(ui=ui,server = server)
+```
+
+

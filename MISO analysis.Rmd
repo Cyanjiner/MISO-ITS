@@ -1,0 +1,66 @@
+---
+title: "MISO analysis"
+author: "Jiner Zheng"
+date: "2/1/2019"
+output: html_document
+---
+
+```{r,warning=FALSE,message=FALSE}
+library(mosaic)
+library(Hmisc)
+library(ggplot2)
+library(plotly)
+MISO_2014<-read.csv("~/Desktop/2014 MISO Survey results/Faculty -- 2014/MISO_Wesleyan_Faculty__2014.csv")
+MISO_2016<-read.csv("~/Desktop/2016 MISO Survey results/Faculty -- 2016/MISO_Wesleyan_Faculty__2016.csv")
+MISO_2014<-MISO_2014[-c(1),]
+MISO_2016<-MISO_2016[-c(1),]
+```
+
+```{r}
+MISO_2014_subset<-select(MISO_2014,V3,YRS,ADIV,RANK,USE_TMS,USE_STMS,USE_FPC,IMP_TMS,IMP_STMS,IMP_TRCTP,IMP_FPC,IMP_SICP,IMP_SDCP,IMP_TRDCP,DS_TMS,DS_STMS,DS_FPC,DS_TRCTP,DS_SICP,DS_SDCP,DS_TRDCP,INF_CDCN,DAHD_F,DAHD_K,DAHD_RL,DAHD_RS,DAMMS_F,DAMMS_K,DAMMS_RL,DAMMS_RS)
+names(MISO_2014_subset)[0:3]<-c("Name","Year","Division")
+MISO_2016_subset<-select(MISO_2016,V3,YRS,ADIV,RANK,USE_TMS,USE_STMS,USE_FPC,IMP_TMS,IMP_STMS,IMP_TRCTP,IMP_FPC,IMP_SICP,IMP_SDCP,DS_TMS,DS_STMS,DS_FPC,DS_TRCTP,DS_SICP,DS_SDCP,DAHD_F,DAHD_K,DAHD_RL,DAHD_RS)
+names(MISO_2016_subset)[0:3]<-c("Name","Year","Division")
+```
+
+```{r}
+label(MISO_2014_subset$USE_TMS)<-"How often do you use Technology in meeting spaces/classrooms"
+label(MISO_2014_subset$USE_STMS)<-"How often do you use Support for technology in meeting spaces/classrooms"
+label(MISO_2014_subset$USE_FPC)<-"How often do you use Desktop Support"
+label(MISO_2014_subset$IMP_TMS)<-"How important are Technology in meeting spaces/classrooms to you"
+label(MISO_2014_subset$IMP_STMS)<-"How important are Support for technology in meeting spaces/classrooms"
+label(MISO_2014_subset$IMP_TRCTP)<-"How important is the time it takes to resolve your classroom technology problems"
+label(MISO_2014_subset$IMP_FPC)<-"How important is Desktop Support to you"
+label(MISO_2014_subset$IMP_SICP)<-"How important is the status information on computing problems"
+label(MISO_2014_subset$IMP_SDCP)<-"How important is the Support when you have a desktop/laptop computing problem"
+label(MISO_2014_subset$IMP_TRDCP)<-"How important is the time it takes to resolve your desktop/laptop computing problem"
+label(MISO_2014_subset$DS_TMS)<-"How dissatisfied or satisfied are you with technology in meeting spaces/classrooms"
+label(MISO_2014_subset$DS_STMS)<-"How dissatisfied or satisfied are you with support for technology in meeting spaces/classrooms"
+label(MISO_2014_subset$DS_TRCTP)<-"How dissatisfied or satisfied are you with the time it takes to resolve your classroom technology problems"
+label(MISO_2014_subset$DS_FPC)<-"How dissatisfied or satisfied are you with desktop support"
+label(MISO_2014_subset$DS_SICP)<-"How dissatisfied or satisfied are you with the status information on computing problems"
+label(MISO_2014_subset$DS_SDCP)<-"How dissatisfied or satisfied are you with the support when you have a desktop/laptop computing problem"
+label(MISO_2014_subset$DS_TRDCP)<-"How dissatisfied or satisfied are you with the time it takes to resolve your desktop/laptop computing problems"
+label(MISO_2014_subset$INF_CDCN)<-"How informed do you feel you about who to contact for your desktop laptop computing needs"
+label(MISO_2014_subset$DAHD_F)<-"How strongly fo you disagree or agree with the desktop support staff-Friendly?"
+label(MISO_2014_subset$DAHD_K)<-"How strongly fo you disagree or agree with the desktop support staff-Knowledgeable?"
+label(MISO_2014_subset$DAHD_RL)<-"How strongly fo you disagree or agree with the desktop support staff-Reliable?"
+label(MISO_2014_subset$DAHD_RS)<-"How strongly fo you disagree or agree with the desktop support staff-Responsive?"
+label(MISO_2014_subset$DAMMS_F)<-"with classroom support staff - Friendly"
+label(MISO_2014_subset$DAMMS_K)<-"with classroom support staff - knowledgeable"
+label(MISO_2014_subset$DAMMS_RL)<-"with classroom support staff - reliable"
+label(MISO_2014_subset$DAMMS_RS)<-"with classroom support staff - responsive"
+```
+
+```{r}
+#MISO_subset$USE_TMS[MISO_subset$USE_TMS == -99]<- NA
+MISO_2016_subset$IMP_TMS[MISO_2016_subset$IMP_TMS == -99]<-NA
+MISO_2016_subset$DS_TMS[MISO_2016_subset$DS_TMS == -99]<-NA
+MISO_2016_subset$RANK[MISO_2016_subset$RANK == -99]<-NA
+ggplot(data=MISO_2016_subset)+
+  stat_summary(aes(x=RANK,y=DS_TMS),fun.y = mean,geom="bar",position = "dodge")
+
+ggplot(data=MISO_2016_subset)+
+  geom_boxplot(aes(x=RANK,y=DS_TMS))
+```
+
